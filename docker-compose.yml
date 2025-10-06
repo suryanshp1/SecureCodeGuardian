@@ -1,0 +1,41 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+      - redis
+    env_file:
+      - .env
+
+  celery_worker:
+    build: ./backend
+    command: celery -A app worker --loglevel=info
+    depends_on:
+      - redis
+      - mongo
+    env_file:
+      - .env
+    environment:
+      - C_FORCE_ROOT=true
+      - PYTHONPATH=/app
+    volumes:
+      - ./backend:/app
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "8501:8501"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
